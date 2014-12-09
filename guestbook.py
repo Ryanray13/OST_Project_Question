@@ -15,16 +15,16 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True)
 # [END imports]
 
-DEFAULT_GUESTBOOK_NAME = 'default_guestbook'
+ANONYMOUS_NAME = 'anonymous'
 
 
 # We set a parent key on the 'Greetings' to ensure that they are all in the same
 # entity group. Queries across the single entity group will be consistent.
 # However, the write rate should be limited to ~1/second.
 
-def guestbook_key(guestbook_name=DEFAULT_GUESTBOOK_NAME):
-    """Constructs a Datastore key for a Guestbook entity with guestbook_name."""
-    return ndb.Key('Guestbook', guestbook_name)
+def guestbook_key(user_name=ANONYMOUS_NAME):
+    """Constructs a Datastore key for a User entity with user_name."""
+    return ndb.Key('User', user_name)
 
 
 class Greeting(ndb.Model):
