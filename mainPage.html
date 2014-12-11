@@ -10,15 +10,17 @@
   <body>
   
    <p align="right">
+     <a href="/" >HomePage</a> &nbsp;
      {% if current_user %}
-       <a href="/create" >Add Question</a> &nbsp;&nbsp; 
-       Welcome, {{ current_user }} <a href="{{ url|safe }}">Sign out</a>
+       <a href="/create" >Add Question</a> &nbsp; 
+       Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
      {% else %}
-       <a href="{{ loginUrl|safe }}">Sign in</a>
+       <a href="{{ signUrl|safe }}">Sign in</a>
      {% endif %}
    </p>
 
    <hr style="border:0;border-bottom:2px solid #000;background:#999"/>
+   <br />
    <div style="margin-left:200px;margin-right:200px;">
     {% for question in questions %}
       {% if question.handle %}
@@ -26,15 +28,14 @@
       {% else %}
         <a href="{{ question.qpermalink |safe }}" >Question {{ question.key.id() }}</a> 
       {% endif %}
-      <blockquote>{{ question.content[:500]|safe }}</blockquote>
+      <blockquote><pre>{{ question.content[:500]|safe }}</pre></blockquote>
       <hr style="border:0;border-bottom:1px dashed #ccc;background:#999"/>
     {% endfor %}
     
-    <a href="/" >Go Back to Home</a> &nbsp;&nbsp; 
     {% if nextPageUrl %}
       <a href="{{ nextPageUrl }}" >Next Page</a>
     {% endif %}
-    </br>
+    <br />
     <p align="middle">&copy;2014&nbsp; Wuping.Lei</p>
   </div>
   </body>

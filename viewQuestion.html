@@ -9,25 +9,27 @@
   <!-- [END head_html] -->
   <body>
     <p align="right">
+     <a href="/" >HomePage</a> &nbsp;
      {% if current_user %}
        Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
      {% else %}
        <a href="{{ signUrl|safe }}">Sign in</a>
      {% endif %}
      </p>
-   
+   <hr style="border:0;border-bottom:2px solid #000;background:#999"/>
+   <br />
     <div style="margin-left:300px;margin-right:300px;">
     {% if question.handle %}
         <h3> {{ question.handle }} </h3>
       {% else %}
         <h3> Question {{ question.key.id() }} </h3> 
     {% endif %}
-    <blockquote>{{ question.content }}</blockquote>
-    <hr style="border:0;border-bottom:2px solid  #000;background:#999"/>
+    <blockquote><pre>{{ question.content }}</pre></blockquote>
+    <hr style="border:0;border-bottom:2px dotted  #000;background:#999"/>
    
     {% for answer in answers %}
-      <blockquote>{{ answer.content }}</blockquote>
-      </br>
+      <blockquote><pre>{{ answer.content }}<pre></blockquote>
+      <br />
       <hr style="border:0;border-bottom:1px dashed #ccc;background:#999"/>
     {% endfor %}
 
@@ -35,13 +37,11 @@
     <form action="{{ answerUrl|safe }}" method="post" accept-charset="utf-8">
       <h3> What is your Answer? </h3>
       <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." ></textarea></div>
-      </br>
+      <br />
       <div><input type="submit" style="height:30px" value="Add Answer"></div>
     </form>
-    {% endif %}
-    </br>
-     <a href="/" >Go Back to Home</a>
-    </br>
+    {% endif %}     
+    <br />
     <p align="middle">&copy;2014&nbsp; Wuping.Lei</p>
   </div>
   </body>

@@ -10,22 +10,22 @@
   <body>
     
     <p align="right">
-       <a href="/create" >Add Question</a> &nbsp;&nbsp; 
+      <a href="/" >HomePage</a> &nbsp;
        Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
     </p>
     <hr style="border:0;border-bottom:2px solid #000;background:#999"/>
-   
+    <br />
     <div class="creatediv">
     <form action="/question" method="post" accept-charset="utf-8">
       <h2> What is your Question? </h2>
       <div><textarea name="qhandle" rows="2" cols="80" placeholder="Type your Question Title (optional) here..." ></textarea></div>
       <div><textarea name="qcontent" rows="20" cols="80" placeholder="Type your Question Description here..." ></textarea></div>
       <div> Add tags <input type="text" name="tag"></div>
-      </br>
+      <br />
       <div><input type="submit" style="height:30px" value="Add Question"></div>
     </form>
     </div>
-    </br>
+    <br />
     <p align="middle">&copy;2014&nbsp; Wuping.Lei</p>
   </body>
 </html>
