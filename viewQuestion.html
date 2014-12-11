@@ -4,32 +4,46 @@
   <!-- [START head_html] -->
   <head>
     <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+    <title> {{ title }} </title>
   </head>
   <!-- [END head_html] -->
   <body>
-    {% for greeting in greetings %}
-      {% if greeting.author %}
-        <b>{{ greeting.author.nickname() }}</b> wrote:
+    <p align="right">
+     {% if current_user %}
+       Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
+     {% else %}
+       <a href="{{ signUrl|safe }}">Sign in</a>
+     {% endif %}
+     </p>
+   
+    <div style="margin-left:300px;margin-right:300px;">
+    {% if question.handle %}
+        <h3> {{ question.handle }} </h3>
       {% else %}
-       An anonymous person wrote:
-      {% endif %}
-      <blockquote>{{ greeting.testkind.kind }}</blockquote>
+        <h3> Question {{ question.key.id() }} </h3> 
+    {% endif %}
+    <blockquote>{{ question.content }}</blockquote>
+    <hr style="border:0;border-bottom:2px solid  #000;background:#999"/>
+   
+    {% for answer in answers %}
+      <blockquote>{{ answer.content }}</blockquote>
+      </br>
+      <hr style="border:0;border-bottom:1px dashed #ccc;background:#999"/>
     {% endfor %}
 
-    <form action="/sign?guestbook_name={{ guestbook_name }}" method="post">
-      <div><textarea name="content" rows="3" cols="60"></textarea></div>
-      <div><input type="submit" value="Sign Guestbook"></div>
+    {% if current_user %}
+    <form action="{{ answerUrl|safe }}" method="post" accept-charset="utf-8">
+      <h3> What is your Answer? </h3>
+      <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." ></textarea></div>
+      </br>
+      <div><input type="submit" style="height:30px" value="Add Answer"></div>
     </form>
-
-    <hr>
-
-    <form>Guestbook name:
-      <input value="{{ guestbook_name }}" name="guestbook_name">
-      <input type="submit" value="switch">
-    </form>
-
-    <a href="{{ url|safe }}">{{ url_linktext }}</a>
-
+    {% endif %}
+    </br>
+     <a href="/" >Go Back to Home</a>
+    </br>
+    <p align="middle">&copy;2014&nbsp; Wuping.Lei</p>
+  </div>
   </body>
 </html>
 {% endautoescape %}

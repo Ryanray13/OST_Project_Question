@@ -11,9 +11,9 @@
     
     <p align="right">
        <a href="/create" >Add Question</a> &nbsp;&nbsp; 
-       Welcome, {{ current_user }} <a href="{{ url|safe }}">Sign out</a>
+       Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
     </p>
-    <hr style="border:0;border-bottom:2px solid #ccc;background:#999"/>
+    <hr style="border:0;border-bottom:2px solid #000;background:#999"/>
    
     <div class="creatediv">
     <form action="/question" method="post" accept-charset="utf-8">
@@ -25,7 +25,8 @@
       <div><input type="submit" style="height:30px" value="Add Question"></div>
     </form>
     </div>
-
+    </br>
+    <p align="middle">&copy;2014&nbsp; Wuping.Lei</p>
   </body>
 </html>
 {% endautoescape %}
