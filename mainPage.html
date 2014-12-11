@@ -9,6 +9,15 @@
   <!-- [END head_html] -->
   <body>
   <div style="margin-left:200px;margin-right:200px;">
+   <p align="right">
+     {% if current_user %}
+       <a href="/create" >Add Question</a> &nbsp;&nbsp; 
+     {% endif %}
+     <a href="{{ url|safe }}">{{ url_linktext }}</a>
+   </p>
+
+   <hr style="border:0;border-bottom:1px dashed #eee;background:#999"/>
+   
     {% for question in questions %}
       {% if question.handle %}
         <a href="{{ question.qpermalink |safe }}" >{{ question.handle }}</a> <br/>
@@ -19,16 +28,15 @@
       <hr style="border:0;border-bottom:1px dashed #eee;background:#999"/>
     {% endfor %}
 
-    <form action="/create?current_user={{ current_user }}" method="post" accept-charset="utf-8">
+    {% if url_linktext != 'Login' %}
+    <form action="/create" method="post" accept-charset="utf-8">
       <div><textarea name="qhandle" rows="3" cols="60" placeholder="Type your Question Title here..." ></textarea></div>
       <div><textarea name="qcontent" rows="10" cols="60" placeholder="Type your Question here..." ></textarea></div>
       <div><input type="submit" value="Add Question"></div>
     </form>
-
-    <hr style="border:0;border-bottom:1px dashed #eee;background:#999"/>
+    <hr style="border:0;border-bottom:1px dashed #eee;background:#999"/>   
+    {% endif %}
     
-
-    <a href="{{ url|safe }}">{{ url_linktext }}</a>
     <p align="middle">&copy;2014&nbsp; Wuping.Lei</p>
   </div>
   </body>

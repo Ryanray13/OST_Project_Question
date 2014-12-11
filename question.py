@@ -62,12 +62,12 @@ class MainPage(webapp2.RequestHandler):
 
         if users.get_current_user():
             url = users.create_logout_url(self.request.uri)
-            url_linktext = 'Logout'
             current_user = users.get_current_user().nickname()
+            url_linktext = 'Logout ' + current_user
         else:
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
-            current_user = DEFAULT_USER_NAME
+            current_user = None
 
         template_values = {
             'title': 'Question',
@@ -85,17 +85,14 @@ class MainPage(webapp2.RequestHandler):
 class CreateQuestion(webapp2.RequestHandler):
 
     def post(self):
-        page =self.request.get('page',1)
-        current_user = self.request.get('current_user',
-                                          DEFAULT_USER_NAME)
         question = Question(parent=site_key())
-
         if users.get_current_user():
             question.author = users.get_current_user()
         question.handle = self.request.get('qhandle')
         question.content = self.request.get('qcontent')
-        query_params = {'qid': question}
-        question.qpermalink = '/view?'
+        question.put()
+        query_params = {'qid': question.key.urlsafe()}
+        question.qpermalink = '/view?' + urllib.urlencode(query_params)
         question.put()
         self.redirect('/')
 
