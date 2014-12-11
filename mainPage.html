@@ -8,16 +8,18 @@
   </head>
   <!-- [END head_html] -->
   <body>
-  <div style="margin-left:200px;margin-right:200px;">
+  
    <p align="right">
      {% if current_user %}
        <a href="/create" >Add Question</a> &nbsp;&nbsp; 
+       Welcome, {{ current_user }} <a href="{{ url|safe }}">Sign out</a>
+     {% else %}
+       <a href="{{ url|safe }}">Sign in</a>
      {% endif %}
-     <a href="{{ url|safe }}">{{ url_linktext }}</a>
    </p>
 
-   <hr style="border:0;border-bottom:1px dashed #eee;background:#999"/>
-   
+   <hr style="border:0;border-bottom:2px solid #ccc;background:#999"/>
+   <div style="margin-left:200px;margin-right:200px;">
     {% for question in questions %}
       {% if question.handle %}
         <a href="{{ question.qpermalink |safe }}" >{{ question.handle }}</a> <br/>
@@ -25,17 +27,8 @@
         <a href="{{ question.qpermalink |safe }}" >{{ question.key.id() }}</a> <br/>
       {% endif %}
       <blockquote>{{ question.content[:500] }}</blockquote>
-      <hr style="border:0;border-bottom:1px dashed #eee;background:#999"/>
+      <hr style="border:0;border-bottom:1px dashed #ccc;background:#999"/>
     {% endfor %}
-
-    {% if url_linktext != 'Login' %}
-    <form action="/create" method="post" accept-charset="utf-8">
-      <div><textarea name="qhandle" rows="3" cols="60" placeholder="Type your Question Title here..." ></textarea></div>
-      <div><textarea name="qcontent" rows="10" cols="60" placeholder="Type your Question here..." ></textarea></div>
-      <div><input type="submit" value="Add Question"></div>
-    </form>
-    <hr style="border:0;border-bottom:1px dashed #eee;background:#999"/>   
-    {% endif %}
     
     <p align="middle">&copy;2014&nbsp; Wuping.Lei</p>
   </div>

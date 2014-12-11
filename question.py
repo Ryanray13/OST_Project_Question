@@ -41,6 +41,7 @@ class Question(ndb.Model):
     modifyDate = ndb.DateTimeProperty(auto_now=True)
     qpermalink = ndb.StringProperty(indexed=False)
     qvotes = ndb.StructuredProperty(Vote,repeated=True)
+    tags = ndb.StringProperty(repeated=True)
     
 class Answer(ndb.Model):
     """Models an individual Guestbook entry with author, content, and date."""
@@ -63,10 +64,8 @@ class MainPage(webapp2.RequestHandler):
         if users.get_current_user():
             url = users.create_logout_url(self.request.uri)
             current_user = users.get_current_user().nickname()
-            url_linktext = 'Logout ' + current_user
         else:
             url = users.create_login_url(self.request.uri)
-            url_linktext = 'Login'
             current_user = None
 
         template_values = {
@@ -74,7 +73,6 @@ class MainPage(webapp2.RequestHandler):
             'questions': questions,
             'current_user': current_user,
             'url': url,
-            'url_linktext': url_linktext,
         }
 
         template = JINJA_ENVIRONMENT.get_template('mainPage.html')
@@ -82,7 +80,28 @@ class MainPage(webapp2.RequestHandler):
 # [END main_page]
 
 
-class CreateQuestion(webapp2.RequestHandler):
+class AddQuestionPage(webapp2.RequestHandler):
+
+    def get(self):
+        if users.get_current_user():
+            url = users.create_logout_url('/')
+            current_user = users.get_current_user().nickname()
+        else:
+            url = users.create_login_url(self.request.uri)
+            self.redirect(url) 
+            return
+        
+        template_values = {
+            'title': 'Add Question',
+            'current_user': current_user,
+            'url': url,
+        }
+
+        template = JINJA_ENVIRONMENT.get_template('createQuestion.html')
+        self.response.write(template.render(template_values))
+        
+
+class AddQuestion(webapp2.RequestHandler):
 
     def post(self):
         question = Question(parent=site_key())
@@ -94,12 +113,13 @@ class CreateQuestion(webapp2.RequestHandler):
         query_params = {'qid': question.key.urlsafe()}
         question.qpermalink = '/view?' + urllib.urlencode(query_params)
         question.put()
-        self.redirect('/')
+        self.redirect('/')        
 
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
-    ('/create', CreateQuestion),
+    ('/create', AddQuestionPage),
+    ('/question', AddQuestion),
     ('/view', MainPage),
     ('/answer', MainPage),
     ('/list', MainPage),
