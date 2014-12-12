@@ -20,23 +20,57 @@
    <br />
     <div style="margin-left:300px;margin-right:300px;">
     {% if question.handle %}
-        <h3> {{ question.handle }} </h3>
+        <h4> {{ question.handle |safe }} </h4>
       {% else %}
-        <h3> Question {{ question.key.id() }} </h3> 
+        <h4> Question {{ question.key.id() }} </h4> 
     {% endif %}
-    <blockquote><pre>{{ question.content |safe }}</pre></blockquote>
+    <form action="{{ ('/vote?qid=' + question.key.urlsafe()) |safe }}" method="post" accept-charset="utf-8">
+    <blockquote><font size="4"><pre>{{ question.content |safe }}</pre></font></blockquote>
+    <p align="right"><font size="2"> {{ question.voteResult }} &nbsp;</font> 
+      <input type="submit" value="Up"  name="value" >
+      <input type="submit" value="Down" name="value" >
+    </p>  
+    </form>
+    <p align="right">
+      <font size="1">
+        created {{ question.createTime.strftime("%b %d '%y at %H:%M:%S") }}; 
+        {% if question.author == current_user %}
+        <a href="{{ ('/create?qid=' + question.key.urlsafe())|safe }}">edited</a>
+        {% else %}
+        edited
+        {% endif %}
+        {{ question.modifyTime.strftime("%b %d '%y at %H:%M:%S") }}
+       </font>
+    </p>
     <hr style="border:0;border-bottom:2px dotted  #000;background:#999"/>
+
    
     {% for answer in answers %}
-      <blockquote><pre>{{ answer.content|safe }}<pre></blockquote>
-      <br />
+     <form action="{{ ('/vote?qid=' + question.key.urlsafe() + '&aid=' + answer.key.urlsafe()) |safe }}" method="post" accept-charset="utf-8">
+      <blockquote><font size="4"><pre>{{ answer.content|safe }}</pre></font></blockquote>
+      <p align="right"><font size="2"> {{ answer.voteResult }} &nbsp; </font> 
+        <input type="submit" value="Up"  name="value" >
+        <input type="submit" value="Down" name="value" >
+      </p>  
+      </form>
+      <p align="right">
+        <font size="1">
+          created {{ answer.createTime.strftime("%b %d '%y at %H:%M:%S") }};
+          {% if question.author == current_user %}
+          <a href="{{ ('/view?aid=' + answer.key.urlsafe())|safe }}">edited</a>
+          {% else %}
+          edited
+          {% endif %} 
+          {{ answer.modifyTime.strftime("%b %d '%y at %H:%M:%S") }} 
+        </font>
+      </p>
       <hr style="border:0;border-bottom:1px dashed #ccc;background:#999"/>
     {% endfor %}
 
     {% if current_user %}
     <form action="{{ answerUrl|safe }}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
-      <h3> What is your Answer? </h3>
-      <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." ></textarea></div>
+      <h4> What is your Answer? </h4>
+      <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." >{{ answerContent }}</textarea></div>
       <br />
       <div><input type="submit" style="height:30px" value="Add Answer"></div>
     </form>

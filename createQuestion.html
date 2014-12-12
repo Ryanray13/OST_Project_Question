@@ -16,6 +16,16 @@
     <hr style="border:0;border-bottom:2px solid #000;background:#999"/>
     <br />
     <div class="creatediv">
+    {% if question %}
+    <form action="{{ ('/editq?qid=' + question.key.urlsafe()) |safe }}"  method="post" accept-charset="utf-8" enctype="multipart/form-data">
+      <h2> What is your Question? </h2>
+      <div><textarea name="qhandle" rows="2" cols="80" placeholder="Type your Question Title (optional) here..." >{{ question.handle |safe }}</textarea></div>
+      <div><textarea name="qcontent" rows="20" cols="80" placeholder="Type your Question Description here..." >{{ question.content |safe }}</textarea></div>
+      <div> Add tags <input type="text" name="tag"></div>
+      <br />
+      <div><input type="submit" style="height:30px" value="Submit Change"></div>
+    </form>
+    {% else %}
     <form action="/question" method="post" accept-charset="utf-8" enctype="multipart/form-data">
       <h2> What is your Question? </h2>
       <div><textarea name="qhandle" rows="2" cols="80" placeholder="Type your Question Title (optional) here..." ></textarea></div>
@@ -24,6 +34,7 @@
       <br />
       <div><input type="submit" style="height:30px" value="Add Question"></div>
     </form>
+    {% endif %}
     </div>
     <br />
     <p align="middle">&copy;2014&nbsp; Wuping.Lei</p>

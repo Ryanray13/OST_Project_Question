@@ -23,12 +23,16 @@
    <br />
    <div style="margin-left:200px;margin-right:200px;">
     {% for question in questions %}
+      <a href="{{ ('/view?qid=' + question.key.urlsafe()) |safe }}" ><font size="4">
       {% if question.handle %}
-        <a href="{{ '/view?qid=' + question.key.urlsafe() |safe }}" >{{ question.handle }}</a>
+        {{ question.handle |safe }}
       {% else %}
-        <a href="{{ '/view?qid=' + question.key.urlsafe() |safe }}" >Question {{ question.key.id() }}</a> 
+        Question {{ question.key.id() }}
       {% endif %}
-      <blockquote><pre>{{ question.content|truncate(500,true) }} {{ question.createTime }}  {{ question.modifyTime }}</pre></blockquote>
+      </font></a> 
+      
+      <blockquote><font size="4"><pre>{{ question.content |truncate(500,true) |safe }}</pre></font></blockquote>
+      <p align="right"><font size="1">created {{ question.createTime.strftime("%b %d '%y at %H:%M:%S") }}; edited {{ question.modifyTime.strftime("%b %d '%y at %H:%M:%S") }} </font></p>
       <hr style="border:0;border-bottom:1px dashed #ccc;background:#999"/>
     {% endfor %}
     

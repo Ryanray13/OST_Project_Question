@@ -8,3 +8,5 @@ indexes:
 - kind: Answer
   ancestor: yes
   properties:
+  - name: voteResult
+    direction: desc
