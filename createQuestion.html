@@ -9,7 +9,7 @@
   <!-- [END head_html] -->
   <body>
     
-    <p align="right">
+    <p style="text-align:right">
       <a href="/" >HomePage</a> &nbsp;
        Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
     </p>
@@ -23,7 +23,10 @@
       <div><textarea name="qcontent" rows="20" cols="80" placeholder="Type your Question Description here..." >{{ question.content |safe }}</textarea></div>
       <div> Add tags <input type="text" name="tag"></div>
       <br />
-      <div><input type="submit" style="height:30px" value="Submit Change"></div>
+      <div>
+        <input type="submit" style="height:30px" value="Submit Change"> &nbsp;
+        <input type="button" value="Cancel" style="height:30px" onClick="location.href='{{ ('/view?qid=' + question.key.urlsafe()) |safe  }}'">
+      </div>
     </form>
     {% else %}
     <form action="/question" method="post" accept-charset="utf-8" enctype="multipart/form-data">
@@ -32,12 +35,15 @@
       <div><textarea name="qcontent" rows="20" cols="80" placeholder="Type your Question Description here..." ></textarea></div>
       <div> Add tags <input type="text" name="tag"></div>
       <br />
-      <div><input type="submit" style="height:30px" value="Add Question"></div>
+      <div>
+        <input type="submit" style="height:30px" value="Add Question"> &nbsp;
+        <input type="button" value="Cancel" style="height:30px" onClick="location.href='/'">
+      </div>
     </form>
     {% endif %}
     </div>
     <br />
-    <p align="middle">&copy;2014&nbsp; Wuping.Lei</p>
+    <p style="text-align:center">&copy;2014&nbsp; Wuping.Lei</p>
   </body>
 </html>
 {% endautoescape %}

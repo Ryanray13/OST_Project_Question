@@ -9,7 +9,6 @@ from google.appengine.datastore.datastore_query import Cursor
 
 import jinja2
 import webapp2
-from base64 import urlsafe_b64decode
 
 
 JINJA_ENVIRONMENT = jinja2.Environment(
@@ -99,7 +98,7 @@ class MainPage(webapp2.RequestHandler):
 
 
 class AddQuestionPage(webapp2.RequestHandler):
-
+    #render create question page and edit question page
     # need to add tag
     def get(self):
         if users.get_current_user():
@@ -181,13 +180,13 @@ class EditQuestion(webapp2.RequestHandler):
             self.redirect('/')
             return
         question.handle = self.request.get('qhandle')
-        question.content = self.request.get('qcontent')
         query_params = {'qid': qid}
         questionEditUrl = '/create?' + urllib.urlencode(query_params)
-        if not question.content:
+        if not self.request.get('qcontent'):
             self.response.write('<script type="text/javascript">alert(" Question cannot be Empty ! ");\
                                  window.location.href="%s"</script>' %(questionEditUrl))
             return
+        question.content = self.request.get('qcontent')
         question.modifyTime = datetime.datetime.now()
         qkey = question.put()
         query_params = {'qid': qkey.urlsafe()}
@@ -204,23 +203,36 @@ class ViewQuestion(webapp2.RequestHandler):
         else:
             signUrl = users.create_login_url(self.request.uri)
             current_user = None
-        
-        qid = self.request.get('qid')
-        if not qid:
+       
+        if self.request.get('qid'):
+            qid = self.request.get('qid')
+            try:
+                questionKey = ndb.Key(urlsafe = qid)
+            except:
+                self.redirect('/')
+                return
+            question = questionKey.get()       
+            answers = Answer.query(ancestor=questionKey).order(-Answer.voteResult).fetch()
+            edit = False
+            query_params = {'qid': qid}
+            answerUrl = '/answer?' + urllib.urlencode(query_params)
+        elif self.request.get('aid') :
+            aid = self.request.get('aid')
+            try:
+                answerKey = ndb.Key(urlsafe = aid)
+            except:
+                self.redirect('/')
+                return
+            questionKey = answerKey.parent()
+            qid = questionKey.urlsafe()
+            question = questionKey.get()
+            answers = answerKey.get()
+            edit = True
+            query_params = {'aid': aid}
+            answerUrl = '/edita?' + urllib.urlencode(query_params)
+        else:
             self.redirect('/')
             return
-        
-        try:
-            questionKey = ndb.Key(urlsafe = qid)
-        except:
-            self.redirect('/')
-            return
-        question = questionKey.get()
-        
-        answers = Answer.query(ancestor=questionKey).order(-Answer.voteResult).fetch()
-        
-        query_params = {'qid': qid}
-        answerUrl = '/answer?' + urllib.urlencode(query_params)
         
         template_values = {
             'title': 'View Question',
@@ -229,11 +241,12 @@ class ViewQuestion(webapp2.RequestHandler):
             'question': question,
             'answers': answers,
             'answerUrl': answerUrl,
+            'edit':edit
         }
 
         template = JINJA_ENVIRONMENT.get_template('viewQuestion.html')
         self.response.write(template.render(template_values))
-        
+       
 class AnswerQuestion(webapp2.RequestHandler):
 
     def post(self):       
@@ -263,7 +276,7 @@ class AnswerQuestion(webapp2.RequestHandler):
         answer.modifyTime = datetime.datetime.now()
         answer.put()
         self.redirect(questionUrl)    
- 
+
 class EditAnswer(webapp2.RequestHandler):
 
     def post(self):
@@ -273,7 +286,7 @@ class EditAnswer(webapp2.RequestHandler):
             signUrl = users.create_login_url('/')
             self.redirect(signUrl) 
             return
-           
+          
         if self.request.get('aid'):
             aid = self.request.get('aid')
         else:
@@ -290,10 +303,17 @@ class EditAnswer(webapp2.RequestHandler):
         if answer.author != author:
             self.redirect('/')
             return
-        
-        query_params = {'qid': aid}
-        questionUrl = '/view?' + urllib.urlencode(query_params)
-        self.redirect(questionUrl)   
+        qid = answerKey.parent().urlsafe()
+        query_params = {'qid':qid}
+        questionUrl = '/view?' + urllib.urlencode(query_params)        
+        if not self.request.get('acontent'):
+            self.response.write('<script type="text/javascript">alert(" Answer cannot be Empty ! ");\
+                                 window.location.href="%s"</script>' %(questionUrl))
+            return
+        answer.content = self.request.get('acontent')
+        answer.modifyTime = datetime.datetime.now()
+        answer.put()
+        self.redirect(questionUrl) 
         
 class AddVote(webapp2.RequestHandler):
 
@@ -402,5 +422,6 @@ application = webapp2.WSGIApplication([
     ('/answer', AnswerQuestion),
     ('/list', MainPage),
     ('/vote', AddVote),
-    ('/editq', EditQuestion)
+    ('/editq', EditQuestion),
+    ('/edita', EditAnswer),
 ], debug=True)

@@ -8,7 +8,7 @@
   </head>
   <!-- [END head_html] -->
   <body>
-    <p align="right">
+    <p style="text-align:right">
      <a href="/" >HomePage</a> &nbsp;
      {% if current_user %}
        Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
@@ -26,12 +26,12 @@
     {% endif %}
     <form action="{{ ('/vote?qid=' + question.key.urlsafe()) |safe }}" method="post" accept-charset="utf-8">
     <blockquote><font size="4"><pre>{{ question.content |safe }}</pre></font></blockquote>
-    <p align="right"><font size="2"> {{ question.voteResult }} &nbsp;</font> 
+    <p style="text-align:right"><font size="2"> {{ question.voteResult }} &nbsp;</font> 
       <input type="submit" value="Up"  name="value" >
       <input type="submit" value="Down" name="value" >
     </p>  
     </form>
-    <p align="right">
+    <p style="text-align:right">
       <font size="1">
         created {{ question.createTime.strftime("%b %d '%y at %H:%M:%S") }}; 
         {% if question.author == current_user %}
@@ -44,16 +44,16 @@
     </p>
     <hr style="border:0;border-bottom:2px dotted  #000;background:#999"/>
 
-   
+    {% if not edit %}
     {% for answer in answers %}
      <form action="{{ ('/vote?qid=' + question.key.urlsafe() + '&aid=' + answer.key.urlsafe()) |safe }}" method="post" accept-charset="utf-8">
       <blockquote><font size="4"><pre>{{ answer.content|safe }}</pre></font></blockquote>
-      <p align="right"><font size="2"> {{ answer.voteResult }} &nbsp; </font> 
+      <p style="text-align:right"><font size="2"> {{ answer.voteResult }} &nbsp; </font> 
         <input type="submit" value="Up"  name="value" >
         <input type="submit" value="Down" name="value" >
       </p>  
       </form>
-      <p align="right">
+      <p style="text-align:right">
         <font size="1">
           created {{ answer.createTime.strftime("%b %d '%y at %H:%M:%S") }};
           {% if question.author == current_user %}
@@ -66,17 +66,27 @@
       </p>
       <hr style="border:0;border-bottom:1px dashed #ccc;background:#999"/>
     {% endfor %}
+    {% endif %}
 
     {% if current_user %}
     <form action="{{ answerUrl|safe }}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
       <h4> What is your Answer? </h4>
-      <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." >{{ answerContent }}</textarea></div>
+      {% if edit %}
+      <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." >{{ answers.content }}</textarea></div>
+      {% else %}
+      <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." ></textarea></div>
+      {% endif %}
       <br />
-      <div><input type="submit" style="height:30px" value="Add Answer"></div>
+      <div>
+        <input type="submit" style="height:30px" value="Submit Answer">
+        {% if edit %}
+        <input type="button" value="Cancel" style="height:30px" onClick="location.href='{{ ('/view?qid=' + question.key.urlsafe()) |safe  }}'">
+        {% endif %}
+      </div>
     </form>
     {% endif %}     
     <br />
-    <p align="middle">&copy;2014&nbsp; Wuping.Lei</p>
+    <p style="text-align:center">&copy;2014&nbsp; Wuping.Lei</p>
   </div>
   </body>
 </html>
