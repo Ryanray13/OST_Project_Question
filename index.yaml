@@ -2,5 +2,9 @@ indexes:
 - kind: Question
   ancestor: yes
   properties:
-  - name: date
+  - name: modifyDate
     direction: desc
+    
+- kind: Answer
+  ancestor: yes
+  properties:

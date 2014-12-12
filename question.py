@@ -24,32 +24,36 @@ DEFAULT_USER_NAME = 'anonymous'
 # However, the write rate should be limited to ~1/second.
 
 def site_key():
-    """Constructs a Datastore key for a User entity with current_user."""
+    """Constructs a website key for All questions."""
     return ndb.Key('Site', 'site')
 
 class Vote(ndb.Model):
-    """Models an individual Guestbook entry with author, content, and date."""
+    """Models an individual Vote entry """
     author = ndb.UserProperty()
     content = ndb.StringProperty(indexed=False)
-    date = ndb.DateTimeProperty(auto_now_add=True)    
+    createTime = ndb.DateTimeProperty(auto_now_add=True)
+    modifyTime = ndb.DateTimeProperty(auto_now=True)
+    
+class VoteResults(ndb.Model):
+    result = ndb.IntegerProperty()
 
 class Question(ndb.Model):
-    """Models an individual Guestbook entry with author, content, and date."""
+    """Models an individual Question entry """
     author = ndb.UserProperty()
     content = ndb.StringProperty(indexed=False)
-    date = ndb.DateTimeProperty(auto_now_add=True)
+    createTime = ndb.DateTimeProperty(auto_now_add=True)
     handle = ndb.StringProperty(indexed=False)
-    modifyDate = ndb.DateTimeProperty(auto_now=True)
+    modifyTime = ndb.DateTimeProperty(auto_now=True)
     qpermalink = ndb.StringProperty(indexed=False)
     qvotes = ndb.StructuredProperty(Vote,repeated=True)
     tags = ndb.StringProperty(repeated=True)
     
 class Answer(ndb.Model):
-    """Models an individual Guestbook entry with author, content, and date."""
+    """Models an individual Answer entry """
     author = ndb.UserProperty()
     content = ndb.StringProperty(indexed=False)
-    date = ndb.DateTimeProperty(auto_now_add=True)
-    modifyDate = ndb.DateTimeProperty(auto_now=True)
+    createTime = ndb.DateTimeProperty(auto_now_add=True)
+    modifyTime = ndb.DateTimeProperty(auto_now=True)
 
 # [START main_page]
 class MainPage(webapp2.RequestHandler):
@@ -58,7 +62,7 @@ class MainPage(webapp2.RequestHandler):
         curs =Cursor(urlsafe=self.request.get('cursor'))
         
         questions_query = Question.query(
-            ancestor=site_key()).order(-Question.date)
+            ancestor=site_key()).order(-Question.modifyTime)
             
         if curs:
             questions, next_curs, more = questions_query.fetch_page(1, start_cursor=curs)
@@ -126,9 +130,6 @@ class AddQuestion(webapp2.RequestHandler):
         question.handle = self.request.get('qhandle')
         question.content = self.request.get('qcontent')
         #qcontent empty return
-        question.put()
-        query_params = {'qid': question.key.urlsafe()}
-        question.qpermalink = '/view?' + urllib.urlencode(query_params)
         question.put()
         self.redirect('/')        
 

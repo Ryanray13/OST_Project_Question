@@ -24,11 +24,11 @@
    <div style="margin-left:200px;margin-right:200px;">
     {% for question in questions %}
       {% if question.handle %}
-        <a href="{{ question.qpermalink |safe }}" >{{ question.handle }}</a>
+        <a href="{{ '/view?qid=' + question.key.urlsafe() |safe }}" >{{ question.handle }}</a>
       {% else %}
-        <a href="{{ question.qpermalink |safe }}" >Question {{ question.key.id() }}</a> 
+        <a href="{{ '/view?qid=' + question.key.urlsafe() |safe }}" >Question {{ question.key.id() }}</a> 
       {% endif %}
-      <blockquote><pre>{{ question.content[:500]|safe }}</pre></blockquote>
+      <blockquote><pre>{{ question.content|truncate(500,true) }} {{ question.createTime }}  {{ question.modifyTime }}</pre></blockquote>
       <hr style="border:0;border-bottom:1px dashed #ccc;background:#999"/>
     {% endfor %}
     

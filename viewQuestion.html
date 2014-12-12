@@ -24,17 +24,17 @@
       {% else %}
         <h3> Question {{ question.key.id() }} </h3> 
     {% endif %}
-    <blockquote><pre>{{ question.content }}</pre></blockquote>
+    <blockquote><pre>{{ question.content |safe }}</pre></blockquote>
     <hr style="border:0;border-bottom:2px dotted  #000;background:#999"/>
    
     {% for answer in answers %}
-      <blockquote><pre>{{ answer.content }}<pre></blockquote>
+      <blockquote><pre>{{ answer.content|safe }}<pre></blockquote>
       <br />
       <hr style="border:0;border-bottom:1px dashed #ccc;background:#999"/>
     {% endfor %}
 
     {% if current_user %}
-    <form action="{{ answerUrl|safe }}" method="post" accept-charset="utf-8">
+    <form action="{{ answerUrl|safe }}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
       <h3> What is your Answer? </h3>
       <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." ></textarea></div>
       <br />
