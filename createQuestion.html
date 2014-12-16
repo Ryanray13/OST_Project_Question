@@ -21,7 +21,7 @@
       <h2> What is your Question? </h2>
       <div><textarea name="qhandle" rows="2" cols="80" placeholder="Type your Question Title (optional) here..." >{{ question.handle |safe }}</textarea></div>
       <div><textarea name="qcontent" rows="20" cols="80" placeholder="Type your Question Description here..." >{{ question.content |safe }}</textarea></div>
-      <div> Add tags <input type="text" name="tag"></div>
+      <div> Add tags <input type="text" name="tag">{{ question.tags |safe }}</div>
       <br />
       <div>
         <input type="submit" style="height:30px" value="Submit Change"> &nbsp;

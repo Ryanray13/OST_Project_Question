@@ -31,7 +31,14 @@
       <input type="submit" value="Down" name="value" >
     </p>  
     </form>
-    <p style="text-align:right">
+    <div >
+    <p style="float:left">
+    Tags:
+        {% for tag in question.tags %}
+        <em>{{tag }} &nbsp;</em>
+        {% endfor %}
+    </p> 
+    <p style="float:right">
       <font size="1">
         created {{ question.createTime.strftime("%b %d '%y at %H:%M:%S") }}; 
         {% if question.author == current_user %}
@@ -42,7 +49,9 @@
         {{ question.modifyTime.strftime("%b %d '%y at %H:%M:%S") }}
        </font>
     </p>
-    <hr style="border:0;border-bottom:2px dotted  #000;background:#999"/>
+    </div>
+    <div style="clear: both;"></div>
+   <hr style="border:0;border-bottom:2px dotted  #000;background:#999"/>
 
     {% if not edit %}
     {% for answer in answers %}
@@ -56,7 +65,7 @@
       <p style="text-align:right">
         <font size="1">
           created {{ answer.createTime.strftime("%b %d '%y at %H:%M:%S") }};
-          {% if question.author == current_user %}
+          {% if answer.author == current_user %}
           <a href="{{ ('/view?aid=' + answer.key.urlsafe())|safe }}">edited</a>
           {% else %}
           edited

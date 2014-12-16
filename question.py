@@ -144,6 +144,8 @@ class AddQuestion(webapp2.RequestHandler):
             return
         question.handle = self.request.get('qhandle')
         question.content = self.request.get('qcontent')
+        qtags = self.request.get('tag')
+        question.tags = qtags.split()
         if not question.content:
             self.response.write('<script type="text/javascript">alert(" Question cannot be Empty ! ");\
                                  window.location.href="%s"</script>' %('/create'))
