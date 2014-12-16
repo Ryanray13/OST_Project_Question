@@ -58,18 +58,25 @@ class Answer(ndb.Model):
 class MainPage(webapp2.RequestHandler):
 
     def get(self):
-        try:
-            curs =Cursor(urlsafe=self.request.get('cursor'))
-        except:
-            self.redirect('/')
-            return
-        questions_query = Question.query(
+        
+        if self.request.get('tag'):
+            tag = self.request.get('tag')
+            questions_query = Question.query(
+            ancestor=site_key()).filter(Question.tags == tag).order(-Question.modifyTime)
+        else:
+            questions_query = Question.query(
             ancestor=site_key()).order(-Question.modifyTime)
             
-        if curs:
-            questions, next_curs, more = questions_query.fetch_page(1, start_cursor=curs)
+        if self.request.get('cursor'):
+            try:
+                curs =Cursor(urlsafe=self.request.get('cursor'))
+            except:
+                self.redirect('/')
+                return          
+            questions, next_curs, more = questions_query.fetch_page(10, start_cursor=curs)
+
         else:
-            questions, next_curs, more = questions_query.fetch_page(1)
+            questions, next_curs, more = questions_query.fetch_page(10)
 
         if users.get_current_user():
             signUrl = users.create_logout_url(self.request.uri)
@@ -79,7 +86,10 @@ class MainPage(webapp2.RequestHandler):
             current_user = None
 
         if more and next_curs:
-            query_params = {'cursor': next_curs.urlsafe()}
+            if self.request.get('tag'):
+                query_params = {'cursor': next_curs.urlsafe(),'tag':self.request.get('tag')}
+            else:
+                query_params = {'cursor': next_curs.urlsafe()}
             nextPageUrl =  '/list?' + urllib.urlencode(query_params)
         else:
             nextPageUrl=None
@@ -96,7 +106,31 @@ class MainPage(webapp2.RequestHandler):
         self.response.write(template.render(template_values))
 # [END main_page]
 
+class GetTagsPage(webapp2.RequestHandler):
+    
+    def get(self):
+        if users.get_current_user():
+            signUrl = users.create_logout_url(self.request.uri)
+            current_user = users.get_current_user()
+        else:
+            signUrl = users.create_login_url(self.request.uri)
+            current_user = None
+        questions = Question.query(ancestor=site_key()).fetch()
+        tagsUrl={}
+        for question in questions:
+            for tag in question.tags:
+                if tag not in tagsUrl:
+                    query_params = {'tag': tag}
+                    tagsUrl[tag] = ('/list?' + urllib.urlencode(query_params))
+        template_values = {
+            'tagsUrl':tagsUrl,
+            'current_user': current_user,
+            'signUrl': signUrl,
+        }
 
+        template = JINJA_ENVIRONMENT.get_template('tags.html')
+        self.response.write(template.render(template_values))
+     
 class AddQuestionPage(webapp2.RequestHandler):
     #render create question page and edit question page
     # need to add tag
@@ -145,7 +179,7 @@ class AddQuestion(webapp2.RequestHandler):
         question.handle = self.request.get('qhandle')
         question.content = self.request.get('qcontent')
         qtags = self.request.get('tag')
-        question.tags = qtags.split()
+        question.tags = set(qtags.split())
         if not question.content:
             self.response.write('<script type="text/javascript">alert(" Question cannot be Empty ! ");\
                                  window.location.href="%s"</script>' %('/create'))
@@ -189,6 +223,7 @@ class EditQuestion(webapp2.RequestHandler):
                                  window.location.href="%s"</script>' %(questionEditUrl))
             return
         question.content = self.request.get('qcontent')
+        question.tags =  set(self.request.get('tag').split())
         question.modifyTime = datetime.datetime.now()
         qkey = question.put()
         query_params = {'qid': qkey.urlsafe()}
@@ -236,6 +271,11 @@ class ViewQuestion(webapp2.RequestHandler):
             self.redirect('/')
             return
         
+        tagsUrl={}
+        for tag in question.tags:
+            query_params = {'tag': tag}
+            tagsUrl[tag] = ('/list?' + urllib.urlencode(query_params))
+        
         template_values = {
             'title': 'View Question',
             'current_user': current_user,
@@ -243,7 +283,8 @@ class ViewQuestion(webapp2.RequestHandler):
             'question': question,
             'answers': answers,
             'answerUrl': answerUrl,
-            'edit':edit
+            'edit':edit,
+            'tagsUrl' : tagsUrl
         }
 
         template = JINJA_ENVIRONMENT.get_template('viewQuestion.html')
@@ -426,4 +467,5 @@ application = webapp2.WSGIApplication([
     ('/vote', AddVote),
     ('/editq', EditQuestion),
     ('/edita', EditAnswer),
+    ('/tags', GetTagsPage)
 ], debug=True)

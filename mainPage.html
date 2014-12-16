@@ -11,6 +11,7 @@
   
    <p align="right">
      <a href="/" >HomePage</a> &nbsp;
+     <a href="/tags" >Tags</a> &nbsp;
      {% if current_user %}
        <a href="/create" >Add Question</a> &nbsp; 
        Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
@@ -40,7 +41,9 @@
       <a href="{{ nextPageUrl }}" >Next Page</a>
     {% endif %}
     <br />
-    <p style="text-align:center">&copy;2014&nbsp; Wuping.Lei</p>
+     <br />
+      <br />
+    <p class="textCenter">&copy;2014&nbsp; Wuping.Lei</p>
   </div>
   </body>
 </html>

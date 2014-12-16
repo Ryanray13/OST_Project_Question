@@ -11,11 +11,12 @@
     
     <p style="text-align:right">
       <a href="/" >HomePage</a> &nbsp;
+      <a href="/tags" >Tags</a> &nbsp;
        Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
     </p>
     <hr style="border:0;border-bottom:2px solid #000;background:#999"/>
     <br />
-    <div class="creatediv">
+    <div class="textCenter">
     {% if question %}
     <form action="{{ ('/editq?qid=' + question.key.urlsafe()) |safe }}"  method="post" accept-charset="utf-8" enctype="multipart/form-data">
       <h2> What is your Question? </h2>
@@ -44,7 +45,8 @@
     {% endif %}
     </div>
     <br />
-    <p style="text-align:center">&copy;2014&nbsp; Wuping.Lei</p>
+     <br />
+    <p class="textCenter">&copy;2014&nbsp; Wuping.Lei</p>
   </body>
 </html>
 {% endautoescape %}

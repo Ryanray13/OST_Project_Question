@@ -34,8 +34,7 @@
     <div >
     <p style="float:left">
     Tags:
-        {% for tag in question.tags %}
-        <em>{{tag }} &nbsp;</em>
+        {% for tag in question.tags %}<em><a href="{{ tagsUrl[tag] | safe}}" >{{ tag |safe }}</a></em>  &nbsp;
         {% endfor %}
     </p> 
     <p style="float:right">
@@ -95,7 +94,7 @@
     </form>
     {% endif %}     
     <br />
-    <p style="text-align:center">&copy;2014&nbsp; Wuping.Lei</p>
+    <p class="textCenter">&copy;2014&nbsp; Wuping.Lei</p>
   </div>
   </body>
 </html>

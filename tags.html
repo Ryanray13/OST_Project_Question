@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+  <!-- [START head_html] -->
+  <head>
+    <link type="text/css" rel="stylesheet" href="/stylesheets/main.css" />
+    <title> {{ title }} </title>
+  </head>
+  <!-- [END head_html] -->
+  <body>
+  
+   <p align="right">
+     <a href="/" >HomePage</a> &nbsp;
+     {% if current_user %}
+       <a href="/create" >Add Question</a> &nbsp; 
+       Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
+     {% else %}
+       <a href="{{ signUrl|safe }}">Sign in</a>
+     {% endif %}
+   </p>
+
+   <hr style="border:0;border-bottom:2px solid #000;background:#999"/>
+   <br />
+   <div  style="margin-left:200px;margin-right:200px;">
+    {% set i=0 %}
+    {% for tag in tagsUrl.keys() %}{% set i= i+1 %}
+      <a href="{{ tagsUrl[tag] |safe }}" >{{ tag |safe }}</a>  &nbsp;
+      {% if i%10 == 0 %}<br /><br />{% endif %}
+    {% endfor %}
+    <br />
+    <br />
+    <p class="textCenter">&copy;2014&nbsp; Wuping.Lei</p>
+  </div>
+  </body>
+</html>
+{% endautoescape %}
