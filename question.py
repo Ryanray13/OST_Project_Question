@@ -27,7 +27,7 @@ DEFAULT_USER_NAME = 'anonymous'
 
 #Custom jinja2 regex replacement filter
 def replacelink(s):
-    """a regex filter"""
+    """a regex link convert filter"""
     def replink(m):
         if m.group().endswith('.jpg') or m.group().endswith('.png') or m.group().endswith('.gif'):
             return  '<img src="'  + m.group() + '"' 
@@ -37,7 +37,7 @@ def replacelink(s):
 
 #replace link for mainpage, mainly just resize the image
 def replacelinkSmall(s):
-    """a regex filter"""
+    """a regex link convert filter"""
     def replink(m):
         if m.group().endswith('.jpg') or m.group().endswith('.png') or m.group().endswith('.gif'):
             return  '<img src="'  + m.group() + '" height="42" width="42">' 
@@ -47,7 +47,7 @@ def replacelinkSmall(s):
 
 #Custom jinja2 quote filter
 def urlquote(s):
-    """a regex filter"""
+    """a regex quote filter"""
     return urllib.quote(s)
 
 def site_key():
@@ -70,7 +70,7 @@ class Question(ndb.Model):
     handle = ndb.StringProperty(indexed=False)
     modifyTime = ndb.DateTimeProperty()
     tags = ndb.StringProperty(repeated=True)
-    voteResult = ndb.IntegerProperty()
+    voteResult = ndb.IntegerProperty() #separate field store up-down vote number
     
 class Answer(ndb.Model):
     """Models an individual Answer entry """
@@ -78,13 +78,13 @@ class Answer(ndb.Model):
     content = ndb.StringProperty(indexed=False)
     createTime = ndb.DateTimeProperty(auto_now_add=True)
     modifyTime = ndb.DateTimeProperty()
-    voteResult = ndb.IntegerProperty()
+    voteResult = ndb.IntegerProperty() #separate field store up-down vote number
 
 # [START main_page]
 class MainPage(webapp2.RequestHandler):
-
+    """ mainpage to show all questions or qustions by tag  """
     def get(self):
-        
+        # if there is a tag, get questions by tag
         if self.request.get('tag'):
             tag = self.request.get('tag')
             questions_query = Question.query(
@@ -92,7 +92,8 @@ class MainPage(webapp2.RequestHandler):
         else:
             questions_query = Question.query(
             ancestor=site_key()).order(-Question.modifyTime)
-            
+        
+        #check whether cursor exists
         if self.request.get('cursor'):
             try:
                 curs =Cursor(urlsafe=self.request.get('cursor'))
@@ -128,13 +129,14 @@ class MainPage(webapp2.RequestHandler):
             'nextPageUrl' : nextPageUrl
         }
 
+        #using customer filter to convert link
         JINJA_ENVIRONMENT.filters['replink'] = replacelinkSmall
         template = JINJA_ENVIRONMENT.get_template('mainPage.html')
         self.response.write(template.render(template_values))
 # [END main_page]
 
 class GetTagsPage(webapp2.RequestHandler):
-    
+    """  This is a page show all the tags """
     def get(self):
         if users.get_current_user():
             signUrl = users.create_logout_url(self.request.uri)
@@ -159,8 +161,8 @@ class GetTagsPage(webapp2.RequestHandler):
         self.response.write(template.render(template_values))
      
 class AddQuestionPage(webapp2.RequestHandler):
-    #render create question page and edit question page
-    # need to add tag
+    """ "render create question page and edit question page """
+
     def get(self):
         if users.get_current_user():
             signUrl = users.create_logout_url('/')
@@ -170,6 +172,7 @@ class AddQuestionPage(webapp2.RequestHandler):
             self.redirect(signUrl) 
             return
         
+        #if there is qid, indicates this is editing, load the question
         if self.request.get('qid'):
             qid = self.request.get('qid')
             try:
@@ -193,8 +196,8 @@ class AddQuestionPage(webapp2.RequestHandler):
         
 
 class AddQuestion(webapp2.RequestHandler):
+    """  handler to handle adding question """
 
-    # need to add tag
     def post(self):
         question = Question(parent=site_key())
         if users.get_current_user():
@@ -206,7 +209,9 @@ class AddQuestion(webapp2.RequestHandler):
         question.handle = self.request.get('qhandle')
         question.content = self.request.get('qcontent')
         qtags = self.request.get('tag')
+        #insure the tags doesn't repeat
         question.tags = set(qtags.split())
+        #if content is empty, pop out error window.
         if not question.content:
             self.response.write('<script type="text/javascript">alert(" Question cannot be Empty ! ");\
                                  window.location.href="%s"</script>' %('/create'))
@@ -219,7 +224,7 @@ class AddQuestion(webapp2.RequestHandler):
         self.redirect(questionUrl)   
       
 class EditQuestion(webapp2.RequestHandler):
-
+    """ This is the handler for editing question """
     def post(self):
         if users.get_current_user():
             author = users.get_current_user()
@@ -251,6 +256,7 @@ class EditQuestion(webapp2.RequestHandler):
             return
         question.content = self.request.get('qcontent')
         question.tags =  set(self.request.get('tag').split())
+        #change the modify time
         question.modifyTime = datetime.datetime.now()
         qkey = question.put()
         query_params = {'qid': qkey.urlsafe()}
@@ -258,7 +264,7 @@ class EditQuestion(webapp2.RequestHandler):
         self.redirect(questionUrl)                 
 
 class ViewQuestion(webapp2.RequestHandler):
-
+    """ render view question page """
     #Add vote view vote handle order by vote
     def get(self):
         if users.get_current_user():
@@ -281,6 +287,7 @@ class ViewQuestion(webapp2.RequestHandler):
             query_params = {'qid': qid}
             answerUrl = '/answer?' + urllib.urlencode(query_params)
         elif self.request.get('aid') :
+            # if there is aid, then is editing that answer, show that answer only
             aid = self.request.get('aid')
             try:
                 answerKey = ndb.Key(urlsafe = aid)
@@ -288,7 +295,6 @@ class ViewQuestion(webapp2.RequestHandler):
                 self.redirect('/')
                 return
             questionKey = answerKey.parent()
-            qid = questionKey.urlsafe()
             question = questionKey.get()
             answers = answerKey.get()
             edit = True
@@ -313,7 +319,7 @@ class ViewQuestion(webapp2.RequestHandler):
         self.response.write(template.render(template_values))
        
 class AnswerQuestion(webapp2.RequestHandler):
-
+    """ handler for adding answers """
     def post(self):       
         if not users.get_current_user():
             signUrl = users.create_login_url('/')
@@ -343,7 +349,7 @@ class AnswerQuestion(webapp2.RequestHandler):
         self.redirect(questionUrl)    
 
 class EditAnswer(webapp2.RequestHandler):
-
+    """ handler for editing answer """
     def post(self):
         if users.get_current_user():
             author = users.get_current_user()
@@ -381,17 +387,34 @@ class EditAnswer(webapp2.RequestHandler):
         self.redirect(questionUrl) 
         
 class AddVote(webapp2.RequestHandler):
-
+    """ handler for voting """
     def post(self):
-        if self.request.get('qid') and self.request.get('value'):                
-            qid = self.request.get('qid')
-            try:
-                questionKey = ndb.Key(urlsafe = qid)
-            except:
-                self.redirect('/')
-                return
-            query_params = {'qid': qid}
-            questionUrl = '/view?' + urllib.urlencode(query_params)
+        if (self.request.get('qid') or self.request.get('aid')) and self.request.get('value'):
+            if self.request.get('qid'):
+                qid = self.request.get('qid')
+                try:
+                    questionKey = ndb.Key(urlsafe = qid)
+                except:
+                    self.redirect('/')
+                    return
+                query_params = {'qid': qid}
+                questionUrl = '/view?' + urllib.urlencode(query_params)
+            
+            if self.request.get('aid'):
+                aid = self.request.get('aid')    
+                try:
+                    answerKey = ndb.Key(urlsafe = aid)
+                except:
+                    if self.request.get('qid'):
+                        self.redirect(questionUrl)
+                    else:
+                        self.redirect('/')
+                    return
+                if not self.request.get('qid'):
+                    qid = answerKey.parent().urlsafe()
+                    query_params = {'qid': qid}
+                    questionUrl = '/view?' + urllib.urlencode(query_params)
+            
             if self.request.get('value') == 'Up' or self.request.get('value') == 'Down':
                 value = self.request.get('value')
             else:
@@ -406,12 +429,6 @@ class AddVote(webapp2.RequestHandler):
             current_user = users.get_current_user()
             
             if self.request.get('aid'):
-                aid = self.request.get('aid')
-                try:
-                    answerKey = ndb.Key(urlsafe = aid)
-                except:
-                    self.redirect(questionUrl)
-                    return
                 answer = answerKey.get();
                 votes = Vote.query(ancestor=answerKey).fetch()
 

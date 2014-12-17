@@ -10,3 +10,6 @@ indexes:
   properties:
   - name: voteResult
     direction: desc
+    
+- kind: Vote
+  ancestor: yes
