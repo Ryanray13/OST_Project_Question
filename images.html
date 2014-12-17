@@ -23,9 +23,12 @@
    <hr style="border:0;border-bottom:2px solid #000;background:#999"/>
    <br />
    <div  style="margin-left:200px;margin-right:200px;">
-    {% set i=0 %}
-    {% for image in imagesUrl %}
-      <a href="{{ image }}"> <img class="preview" src="{{ image |safe }}" >ImageLink</a> &nbsp;&nbsp;
+    {% for image in images %}
+     {% if admin %}<form action="{{ ('/delete?imgid=' + image.key().__str__()) |safe}}" method="POST">
+     <input type="image" name="delete"  src="stylesheets/img/delete.png" width="16" height="16">&nbsp;
+      </form>{% endif %}
+     <a href="{{ ('/img/'+image.key().__str__()) | safe }}"> <img class="preview" src="{{ ('/img/'+image.key().__str__()) |safe }}" >ImageLink&nbsp;</a> 
+
     {% endfor %}
     <br />
     <br />

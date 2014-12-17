@@ -29,11 +29,11 @@
       {% else %}
        <h4> Question {{ question.key.id() }}{% if not edit %}
        <a href="{{('/rss?qid=' + question.key.urlsafe()) | safe}}">
-       <img src="stylesheets/img/rss.gif" width="36" height="16"></a>{% endif %} </h4>
-    {% endif %}
+       <img src="stylesheets/img/rss.gif" width="36" height="16"></a>{% endif %} </h4>{% endif %}
+      
 
     <form action="{{ ('/vote?qid=' + question.key.urlsafe()) |safe }}" method="post" accept-charset="utf-8">
-    <blockquote><font size="4"><pre>{{ question.content| replink |safe }}</pre></font></blockquote>
+    <blockquote><pre><font size="4">{{ question.content| replink |safe }}</font></pre></blockquote>
     <p style="text-align:right"><font size="2"> {{ question.voteResult }} &nbsp;</font> 
       <input type="submit" value="Up"  name="value" >
       <input type="submit" value="Down" name="value" >
@@ -47,17 +47,16 @@
         {% for tag in question.tags %}<em><a href="{{ ('/list?tag=' + (tag | urlquote)) | safe}}" >{{ tag |safe }}</a></em>  &nbsp;
         {% endfor %}
     </p> 
+    {% if admin %}<form action="{{ ('/delete?qid=' + question.key.urlsafe()) |safe}}" method="POST">{% endif %}
     <p style="float:right">
       <font size="1">
         created {{ question.createTime.strftime("%b %d '%y at %H:%M:%S") }}; 
         {% if question.author == current_user %}
-        <a href="{{ ('/create?qid=' + question.key.urlsafe())|safe }}">edited</a>
-        {% else %}
-        edited
-        {% endif %}
-        {{ question.modifyTime.strftime("%b %d '%y at %H:%M:%S") }}
+        <a href="{{ ('/create?qid=' + question.key.urlsafe())|safe }}">edited</a>{% else %}
+        edited{% endif %}{{ question.modifyTime.strftime("%b %d '%y at %H:%M:%S") }}
        </font>
-    </p>
+       {% if admin %}<input type="image" name="delete"  src="stylesheets/img/delete.png" width="16" height="16">&nbsp;
+      {% endif %}</p>{% if admin %}</form>{% endif %}
     </div>
     <div style="clear: both;"></div>
    <hr style="border:0;border-bottom:2px dotted  #000;background:#999"/>
@@ -65,12 +64,13 @@
     {% if not edit %}
     {% for answer in answers %}
      <form action="{{ ('/vote?aid=' + answer.key.urlsafe()) |safe }}" method="post" accept-charset="utf-8">
-      <blockquote><font size="4"><pre>{{ answer.content|replink |safe }}</pre></font></blockquote>
+      <blockquote><pre><font size="4">{{ answer.content|replink |safe }}</font></pre></blockquote>
       <p style="text-align:right"><font size="2"> {{ answer.voteResult }} &nbsp; </font> 
         <input type="submit" value="Up"  name="value" >
         <input type="submit" value="Down" name="value" >
       </p>  
       </form>
+      {% if admin %}<form action="{{ ('/delete?aid=' + answer.key.urlsafe())  |safe}}" method="POST">{% endif %}
       <p style="text-align:right">
         <font size="1">
           created {{ answer.createTime.strftime("%b %d '%y at %H:%M:%S") }};
@@ -81,7 +81,8 @@
           {% endif %} 
           {{ answer.modifyTime.strftime("%b %d '%y at %H:%M:%S") }} 
         </font>
-      </p>
+         {% if admin %}<input type="image" name="delete"  src="stylesheets/img/delete.png" width="16" height="16">&nbsp;
+      {% endif %}</p>{% if admin %}</form>{% endif %}
       <hr style="border:0;border-bottom:1px dashed #ccc;background:#999"/>
     {% endfor %}
     {% endif %}
@@ -97,10 +98,10 @@
       <br />
       <div>
         <input type="submit" style="height:30px" value="Submit Answer"> &nbsp;
-        <a href="/image"  target="_blank">UploadImages</a> &nbsp;
         {% if edit %}
         <input type="button" value="Cancel" style="height:30px" onClick="location.href='{{ ('/view?qid=' + question.key.urlsafe()) |safe  }}'">
         {% endif %}
+        <a href="/image"  target="_blank">UploadImages</a> &nbsp;
       </div>
     </form>
     {% endif %}     

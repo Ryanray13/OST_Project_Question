@@ -27,15 +27,21 @@
    <div style="margin-left:200px;margin-right:200px;">
     {% for question in questions %}
       <a href="{{ ('/view?qid=' + question.key.urlsafe()) |safe }}" ><font size="4">
-      {% if question.handle %}
-        {{ question.handle |safe }}
-      {% else %}
-        Question {{ question.key.id() }}
-      {% endif %}
+      {% if question.handle %}{{ question.handle |safe }}
+      {% else %}Question {{ question.key.id() }}{% endif %}
       </font></a> 
       
-      <blockquote><font size="4"><pre>{{ question.content |truncate(500,false) | replink |safe }}</pre></font></blockquote>
-      <p style="text-align:right;"><font size="1">created {{ question.createTime.strftime("%b %d '%y at %H:%M:%S") }}; edited {{ question.modifyTime.strftime("%b %d '%y at %H:%M:%S") }} </font></p>
+      <blockquote><pre><font size="4">{{ question.content |truncate(500,false) | replink |safe }}</font></pre></blockquote>
+      {% if admin %}<form action="{{ ('/delete?qid=' + question.key.urlsafe()) |safe}}" method="POST">{% endif %}
+      <p style="text-align:right;"><font size="1">
+      created {{ question.createTime.strftime("%b %d '%y at %H:%M:%S") }}; 
+      {% if question.author == current_user %}
+        <a href="{{ ('/create?qid=' + question.key.urlsafe())|safe }}">edited</a>{% else %}edited {% endif %}
+      {{ question.modifyTime.strftime("%b %d '%y at %H:%M:%S") }} </font>
+      {% if admin %}
+       <input type="image" name="delete"  src="stylesheets/img/delete.png" width="16" height="16">&nbsp;
+      {% endif %}</p>{% if admin %}</form>{% endif %}
+      
       <hr style="border:0;border-bottom:1px dashed #ccc;background:#999"/>
     {% endfor %}
     

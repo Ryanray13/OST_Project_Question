@@ -7,6 +7,7 @@ import re
 from google.appengine.api import users
 from google.appengine.ext import ndb
 from google.appengine.ext import blobstore
+from google.appengine.api import mail
 from google.appengine.datastore.datastore_query import Cursor
 from google.appengine.ext.webapp import blobstore_handlers
 
@@ -57,6 +58,27 @@ def replacelinkSmall(s):
 def urlquote(s):
     """a regex quote filter"""
     return urllib.quote(s)
+
+def sendEmail(author, answer):
+    if mail.is_email_valid(author.email()):
+        message = mail.EmailMessage(sender="Admin <wl1002@nyu.edu>",
+                            subject="Your question receives a new answer")
+
+        message.to = "%s <%s>" % (author.nickname(), author.email())
+        message.body = """
+        Dear %s:
+
+        Your question has received a new answer:
+
+        %s
+        
+        By
+        
+        %s
+        
+        """ % (author.nickname(), answer.content, answer.author.nickname())
+        message.send()
+
 
 def site_key():
     """Constructs a website key for All questions."""
@@ -112,10 +134,13 @@ class MainPage(webapp2.RequestHandler):
 
         else:
             questions, next_curs, more = questions_query.fetch_page(10)
-
+            
+        admin = False
         if users.get_current_user():
             signUrl = users.create_logout_url(self.request.uri)
             current_user = users.get_current_user()
+            if users.is_current_user_admin():
+                admin = True
         else:
             signUrl = users.create_login_url(self.request.uri)
             current_user = None
@@ -134,7 +159,8 @@ class MainPage(webapp2.RequestHandler):
             'questions': questions,
             'current_user': current_user,
             'signUrl': signUrl,
-            'nextPageUrl' : nextPageUrl
+            'nextPageUrl' : nextPageUrl,
+            'admin' : admin
         }
 
         #using customer filter to convert link
@@ -172,24 +198,28 @@ class GetTagsPage(webapp2.RequestHandler):
 class GetImagesPage(webapp2.RequestHandler):
     """  This is a page show all the images """
     def get(self):
-        if self.request.get('submit'):
-            self.redirect('/image');
+        upload_url = blobstore.create_upload_url('/uploadImage')
+
         if users.get_current_user():
             signUrl = users.create_logout_url(self.request.uri)
             current_user = users.get_current_user()
         else:
             signUrl = users.create_login_url(self.request.uri)
             current_user = None
-        upload_url = blobstore.create_upload_url('/uploadImage')
-        imagesUrl=[]
-        for image in blobstore.BlobInfo.gql("ORDER BY creation DESC").run():
-                imagesUrl.append('/img/%s' % image.key())
+            
+        if users.is_current_user_admin():
+            admin = True
+        else:
+            admin = False
+        
+        images =  blobstore.BlobInfo.gql("ORDER BY creation DESC").run()
         template_values = {
             'title':'Images',
-            'imagesUrl':imagesUrl,
+            'images':images,
             'current_user': current_user,
             'signUrl': signUrl,
-            'uploadUrl':upload_url
+            'uploadUrl':upload_url,
+            'admin' : admin
         }
 
         template = JINJA_ENVIRONMENT.get_template('images.html')
@@ -307,9 +337,12 @@ class ViewQuestion(webapp2.RequestHandler):
     """ render view question page """
     #Add vote view vote handle order by vote
     def get(self):
+        admin = False
         if users.get_current_user():
             signUrl = users.create_logout_url(self.request.uri)
             current_user = users.get_current_user()
+            if users.is_current_user_admin():
+                admin=True
         else:
             signUrl = users.create_login_url(self.request.uri)
             current_user = None
@@ -354,6 +387,7 @@ class ViewQuestion(webapp2.RequestHandler):
             'answers': answers,
             'uploadUrl': answerUrl,
             'edit':edit,
+            'admin' : admin
         }
         JINJA_ENVIRONMENT.filters['replink'] = replacelink
         JINJA_ENVIRONMENT.filters['urlquote'] = urlquote
@@ -388,6 +422,7 @@ class AnswerQuestion(webapp2.RequestHandler):
         answer.voteResult = 0
         answer.modifyTime = datetime.datetime.now()
         answer.put()
+        sendEmail(questionKey.get().author, answer)
         self.redirect(questionUrl)    
 
 class EditAnswer(webapp2.RequestHandler):
@@ -426,6 +461,7 @@ class EditAnswer(webapp2.RequestHandler):
         answer.content = self.request.get('acontent')
         answer.modifyTime = datetime.datetime.now()
         answer.put()
+        sendEmail(answerKey.parent().get().author, answer)
         self.redirect(questionUrl) 
         
 class AddVote(webapp2.RequestHandler):
@@ -588,8 +624,60 @@ class ImageHandler(blobstore_handlers.BlobstoreDownloadHandler):
         
 class UploadImageHandler(blobstore_handlers.BlobstoreUploadHandler):
     def post(self):
-        self.redirect('/image') 
-            
+        self.redirect('/redirect?arg=image') 
+
+class RedirectHandler(webapp2.RequestHandler):
+    def get(self):
+        if self.request.get('arg'):
+            url = self.request.get('arg')
+            self.redirect('/' + url)
+        else:
+            self.redirect('/')
+
+class DeleteHandler(webapp2.RequestHandler):
+    def post(self):
+        if not users.is_current_user_admin():
+            signUrl = users.create_logout_url('/')
+            self.redirect(signUrl)
+        
+        if self.request.get('qid'):
+            qid = self.request.get('qid')
+            try:
+                questionKey = ndb.Key(urlsafe = qid)
+            except:
+                self.redirect('/')
+                return
+            question = questionKey.get()
+            answers = Answer.query(ancestor=questionKey).fetch()
+            for answer in answers:
+                answer.key.delete()
+            votes = Vote.query(ancestor=questionKey).fetch()
+            for vote in votes:
+                vote.key.delete()
+            question.key.delete()
+            self.redirect('/')
+        elif self.request.get('aid'):
+            aid=self.request.get('aid')
+            try:
+                answerKey = ndb.Key(urlsafe = aid)
+            except:
+                self.redirect('/')
+                return
+            answer = answerKey.get()
+            questionKey = answerKey.parent()
+            votes = Vote.query(ancestor=answerKey).fetch()
+            for vote in votes:
+                vote.key.delete()
+            answer.key.delete()
+            self.redirect('/view?qid=' + questionKey.urlsafe())
+        elif self.request.get('imgid'):
+            imgid=self.request.get('imgid')
+            image = blobstore.BlobInfo.get(imgid)
+            image.delete()
+            self.redirect('/image')
+        else:
+            self.redirect('/')   
+                    
     
 application = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -605,5 +693,7 @@ application = webapp2.WSGIApplication([
     ('/rss', RssPage),
     ('/img/([^/]+)?', ImageHandler),
     ('/image', GetImagesPage),
-    ('/uploadImage', UploadImageHandler)
+    ('/uploadImage', UploadImageHandler),
+    ('/delete', DeleteHandler),
+    ('/redirect', RedirectHandler)
 ], debug=True)
