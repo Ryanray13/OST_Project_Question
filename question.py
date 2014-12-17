@@ -6,7 +6,9 @@ import re
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
+from google.appengine.ext import blobstore
 from google.appengine.datastore.datastore_query import Cursor
+from google.appengine.ext.webapp import blobstore_handlers
 
 import jinja2
 import webapp2
@@ -29,21 +31,27 @@ DEFAULT_USER_NAME = 'anonymous'
 def replacelink(s):
     """a regex link convert filter"""
     def replink(m):
+        imageString = 'http://' + os.environ['HTTP_HOST'] + '/img'
         if m.group().endswith('.jpg') or m.group().endswith('.png') or m.group().endswith('.gif'):
-            return  '<img src="'  + m.group() + '"' 
+            return  '<img src="'  + m.group() + '">'
+        elif m.group().startswith(imageString):
+            return  '<img src="'  + m.group() + '">'
         else:
             return '<a href="' + m.group(1) + '">' + m.group(2) + '</a>'
-    return re.sub(r'(https?://([^ ,;]*))', replink, s)
+    return re.sub(r'(https?://([^ ,;\n]*))', replink, s)
 
 #replace link for mainpage, mainly just resize the image
 def replacelinkSmall(s):
     """a regex link convert filter"""
     def replink(m):
+        imageString = 'http://' + os.environ['HTTP_HOST'] + '/img'
         if m.group().endswith('.jpg') or m.group().endswith('.png') or m.group().endswith('.gif'):
-            return  '<img src="'  + m.group() + '" height="42" width="42">' 
+            return  '<img src="'  + m.group() + '" height="50" width="50">' 
+        elif m.group().startswith(imageString):
+            return  '<img src="'  + m.group() + '" height="50" width="50">' 
         else:
             return '<a href="' + m.group(1) + '">' + m.group(2) + '</a>'
-    return re.sub(r'(https?://([^ ,;]*))', replink, s)
+    return re.sub(r'(https?://([^ ,;\n]*))', replink, s)
 
 #Custom jinja2 quote filter
 def urlquote(s):
@@ -183,22 +191,25 @@ class AddQuestionPage(webapp2.RequestHandler):
                 return
             question = questionKey.get()
             title = 'Edit Quetsion'
+            upload_url = blobstore.create_upload_url('/editq?qid=' + question.key.urlsafe())
         else:
             question=None
             title = 'Create Question'
-            
+            upload_url = blobstore.create_upload_url('/question')
+               
         template_values = {
             'title': title,
             'current_user': current_user,
             'signUrl': signUrl,
-            'question':question
+            'question':question,
+            'uploadUrl' : upload_url
         }
 
         template = JINJA_ENVIRONMENT.get_template('createQuestion.html')
         self.response.write(template.render(template_values))
         
 
-class AddQuestion(webapp2.RequestHandler):
+class AddQuestion(blobstore_handlers.BlobstoreUploadHandler):
     """  handler to handle adding question """
 
     def post(self):
@@ -209,24 +220,30 @@ class AddQuestion(webapp2.RequestHandler):
             signUrl = users.create_login_url('/')
             self.redirect(signUrl) 
             return
-        question.handle = self.request.get('qhandle')
-        question.content = self.request.get('qcontent')
+        question.handle = self.request.get('qhandle')      
         qtags = self.request.get('tag')
         #insure the tags doesn't repeat
         question.tags = set(qtags.split())
         #if content is empty, pop out error window.
-        if not question.content:
+        if not self.request.get('qcontent'):
             self.response.write('<script type="text/javascript">alert(" Question cannot be Empty ! ");\
                                  window.location.href="%s"</script>' %('/create'))
             return
+        question.content = self.request.get('qcontent')
         question.voteResult = 0
+        upload_images = self.get_uploads('image')
+        if upload_images:
+            for image in upload_images:
+                blob_info = image
+                question.content += ' http://' + os.environ['HTTP_HOST'] + ('/img/%s' % blob_info.key()) + ' '
+                
         question.modifyTime = datetime.datetime.now()
         qkey = question.put()
         query_params = {'qid': qkey.urlsafe()}
         questionUrl = '/view?' + urllib.urlencode(query_params)
         self.redirect(questionUrl)   
       
-class EditQuestion(webapp2.RequestHandler):
+class EditQuestion(blobstore_handlers.BlobstoreUploadHandler):
     """ This is the handler for editing question """
     def post(self):
         if users.get_current_user():
@@ -260,6 +277,11 @@ class EditQuestion(webapp2.RequestHandler):
         question.content = self.request.get('qcontent')
         question.tags =  set(self.request.get('tag').split())
         #change the modify time
+        upload_images = self.get_uploads('image')
+        if upload_images:
+            for image in upload_images:
+                blob_info = image
+                question.content += ' http://' + os.environ['HTTP_HOST'] + ('/img/%s' % blob_info.key()) + ' '
         question.modifyTime = datetime.datetime.now()
         qkey = question.put()
         query_params = {'qid': qkey.urlsafe()}
@@ -289,6 +311,8 @@ class ViewQuestion(webapp2.RequestHandler):
             edit = False
             query_params = {'qid': qid}
             answerUrl = '/answer?' + urllib.urlencode(query_params)
+            #upload_url = blobstore.create_upload_url(answerUrl)
+            upload_url = answerUrl
             title='View Question'
         elif self.request.get('aid'):
             # if there is aid, then is editing that answer, show that answer only
@@ -304,6 +328,7 @@ class ViewQuestion(webapp2.RequestHandler):
             edit = True
             query_params = {'aid': aid}
             answerUrl = '/edita?' + urllib.urlencode(query_params)
+            upload_url = answerUrl
             title='Edit Answer'
         else:
             self.redirect('/')
@@ -315,7 +340,7 @@ class ViewQuestion(webapp2.RequestHandler):
             'signUrl': signUrl,
             'question': question,
             'answers': answers,
-            'answerUrl': answerUrl,
+            'uploadUrl': upload_url,
             'edit':edit,
         }
         JINJA_ENVIRONMENT.filters['replink'] = replacelink
@@ -323,7 +348,7 @@ class ViewQuestion(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('viewQuestion.html')
         self.response.write(template.render(template_values))
        
-class AnswerQuestion(webapp2.RequestHandler):
+class AnswerQuestion(blobstore_handlers.BlobstoreUploadHandler):
     """ handler for adding answers """
     def post(self):       
         if not users.get_current_user():
@@ -342,12 +367,17 @@ class AnswerQuestion(webapp2.RequestHandler):
         answer = Answer(parent=questionKey)
         query_params = {'qid': qid}
         questionUrl = '/view?' + urllib.urlencode(query_params)
-        answer.author = users.get_current_user()
-        answer.content = self.request.get('acontent')
-        if not answer.content:
+        answer.author = users.get_current_user()       
+        if not self.request.get('acontent'):
             self.response.write('<script type="text/javascript">alert(" Answer cannot be Empty ! ");\
                                  window.location.href="%s"</script>' %(questionUrl))
             return
+        answer.content = self.request.get('acontent')
+        upload_images = self.get_uploads('image')
+        if upload_images:
+            for image in upload_images:
+                blob_info = image
+                answer.content += ' http://' + os.environ['HTTP_HOST'] + ('/img/%s' % blob_info.key()) + ' '
         answer.voteResult = 0
         answer.modifyTime = datetime.datetime.now()
         answer.put()
@@ -387,6 +417,12 @@ class EditAnswer(webapp2.RequestHandler):
                                  window.location.href="%s"</script>' %(questionUrl))
             return
         answer.content = self.request.get('acontent')
+        ''' upload_images = self.get_uploads('image')
+        if upload_images:
+            for image in upload_images:
+                blob_info = image
+                answer.content += ' http://' + os.environ['HTTP_HOST'] + ('/img/%s' % blob_info.key()) + ' '
+        '''
         answer.modifyTime = datetime.datetime.now()
         answer.put()
         self.redirect(questionUrl) 
@@ -543,6 +579,12 @@ class RssPage(webapp2.RequestHandler):
         template = JINJA_ENVIRONMENT.get_template('questionRss.xml')
         self.response.write(template.render(template_values))
 
+class ImageHandler(blobstore_handlers.BlobstoreDownloadHandler):
+    def get(self, resource):
+        resource = str(urllib.unquote(resource))
+        blob_info = blobstore.BlobInfo.get(resource)
+        self.send_blob(blob_info)
+    
 application = webapp2.WSGIApplication([
     ('/', MainPage),
     ('/create', AddQuestionPage),
@@ -554,5 +596,6 @@ application = webapp2.WSGIApplication([
     ('/editq', EditQuestion),
     ('/edita', EditAnswer),
     ('/tags', GetTagsPage),
-    ('/rss', RssPage)
+    ('/rss', RssPage),
+    ('/img/([^/]+)?', ImageHandler)
 ], debug=True)

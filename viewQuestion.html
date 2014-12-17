@@ -84,16 +84,17 @@
     {% endif %}
 
     {% if current_user %}
-    <form action="{{ answerUrl|safe }}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
+    <form action="{{ uploadUrl|safe }}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
       <h4> What is your Answer? </h4>
       {% if edit %}
-      <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." >{{ answers.content | safe }}</textarea></div>
+      <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." >{{ answers.content}}</textarea></div>
       {% else %}
       <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." ></textarea></div>
       {% endif %}
       <br />
       <div>
-        <input type="submit" style="height:30px" value="Submit Answer">
+        <input type="submit" style="height:30px" value="Submit Answer"> &nbsp;
+        <input type="file" name="image" style="font-size:15px" accept="image/*" multiple>
         {% if edit %}
         <input type="button" value="Cancel" style="height:30px" onClick="location.href='{{ ('/view?qid=' + question.key.urlsafe()) |safe  }}'">
         {% endif %}

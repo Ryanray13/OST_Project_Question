@@ -2,7 +2,7 @@ indexes:
 - kind: Question
   ancestor: yes
   properties:
-  - name: modifyDate
+  - name: modifyTime
     direction: desc
     
 - kind: Answer
