@@ -311,8 +311,8 @@ class ViewQuestion(webapp2.RequestHandler):
             edit = False
             query_params = {'qid': qid}
             answerUrl = '/answer?' + urllib.urlencode(query_params)
-            #upload_url = blobstore.create_upload_url(answerUrl)
-            upload_url = answerUrl
+            upload_url = blobstore.create_upload_url(answerUrl)
+            #upload_url = answerUrl
             title='View Question'
         elif self.request.get('aid'):
             # if there is aid, then is editing that answer, show that answer only
@@ -328,7 +328,8 @@ class ViewQuestion(webapp2.RequestHandler):
             edit = True
             query_params = {'aid': aid}
             answerUrl = '/edita?' + urllib.urlencode(query_params)
-            upload_url = answerUrl
+            upload_url = blobstore.create_upload_url(answerUrl)
+            #upload_url = answerUrl
             title='Edit Answer'
         else:
             self.redirect('/')
@@ -383,7 +384,7 @@ class AnswerQuestion(blobstore_handlers.BlobstoreUploadHandler):
         answer.put()
         self.redirect(questionUrl)    
 
-class EditAnswer(webapp2.RequestHandler):
+class EditAnswer(blobstore_handlers.BlobstoreUploadHandler):
     """ handler for editing answer """
     def post(self):
         if users.get_current_user():
@@ -417,12 +418,12 @@ class EditAnswer(webapp2.RequestHandler):
                                  window.location.href="%s"</script>' %(questionUrl))
             return
         answer.content = self.request.get('acontent')
-        ''' upload_images = self.get_uploads('image')
+        upload_images = self.get_uploads('image')
         if upload_images:
             for image in upload_images:
                 blob_info = image
                 answer.content += ' http://' + os.environ['HTTP_HOST'] + ('/img/%s' % blob_info.key()) + ' '
-        '''
+        
         answer.modifyTime = datetime.datetime.now()
         answer.put()
         self.redirect(questionUrl) 
