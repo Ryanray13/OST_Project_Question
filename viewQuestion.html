@@ -10,7 +10,10 @@
   <body>
     <p style="text-align:right">
      <a href="/" >HomePage</a> &nbsp;
+     <a href="/tags" target="_blank" >Tags</a> &nbsp;
+      <a href="/image" target="_blank" >Images</a> &nbsp;
      {% if current_user %}
+     <a href="/create" >Add Question</a> &nbsp;
        Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
      {% else %}
        <a href="{{ signUrl|safe }}">Sign in</a>
@@ -94,7 +97,7 @@
       <br />
       <div>
         <input type="submit" style="height:30px" value="Submit Answer"> &nbsp;
-        <input type="file" name="image" style="font-size:15px" accept="image/*" multiple>
+        <a href="/image"  target="_blank">UploadImages</a> &nbsp;
         {% if edit %}
         <input type="button" value="Cancel" style="height:30px" onClick="location.href='{{ ('/view?qid=' + question.key.urlsafe()) |safe  }}'">
         {% endif %}

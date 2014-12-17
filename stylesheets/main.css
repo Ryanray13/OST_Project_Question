@@ -15,8 +15,13 @@ body {
 }
 
 img{
-  	max-width:40%;
-    max-height:40%;
+  	max-width:50%;
+    max-height:50%;
+}
+
+img.preview{
+  	max-width:20%;
+    max-height:20%;
 }
 
 .buttonLink {

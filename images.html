@@ -11,7 +11,7 @@
   
    <p align="right">
      <a href="/" >HomePage</a> &nbsp;
-      <a href="/image" >Images</a> &nbsp;
+     <a href="/tags" >Tags</a> &nbsp;
      {% if current_user %}
        <a href="/create" >Add Question</a> &nbsp; 
        Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
@@ -24,12 +24,18 @@
    <br />
    <div  style="margin-left:200px;margin-right:200px;">
     {% set i=0 %}
-    {% for tag in tagsUrl.keys() %}{% set i= i+1 %}
-      <a href="{{ tagsUrl[tag] |safe }}" >{{ tag |safe }}</a>  &nbsp;
-      {% if i%10 == 0 %}<br /><br />{% endif %}
+    {% for image in imagesUrl %}
+      <a href="{{ image }}"> <img class="preview" src="{{ image |safe }}" >ImageLink</a> &nbsp;&nbsp;
     {% endfor %}
     <br />
     <br />
+    <hr style="border:0;border-bottom:2px solid #000;background:#999"/>
+     {% if current_user %}
+    <form action="{{ uploadUrl | safe }}" method="POST" enctype="multipart/form-data">
+    Upload Images: <input type="file" style="font-size:18px" name="image"  multiple><br> 
+    <input type="submit" name="submit" style="height:30px" value="Upload">
+    </form>
+    {% endif %}
     <p class="textCenter">&copy;2014&nbsp; Wuping.Lei</p>
   </div>
   </body>

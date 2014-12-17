@@ -11,7 +11,8 @@
     
     <p style="text-align:right">
       <a href="/" >HomePage</a> &nbsp;
-      <a href="/tags" >Tags</a> &nbsp;
+      <a href="/tags" target="_blank" >Tags</a> &nbsp;
+       <a href="/image"  target="_blank">Images</a> &nbsp;
        Welcome, {{ current_user }} <a href="{{ signUrl|safe }}">Sign out</a>
     </p>
     <hr style="border:0;border-bottom:2px solid #000;background:#999"/>
@@ -37,7 +38,7 @@
       <div><textarea name="qhandle" rows="2" cols="80" placeholder="Type your Question Title (optional) here..." ></textarea></div>
       <div><textarea name="qcontent" rows="20" cols="80" placeholder="Type your Question Description here..." ></textarea></div>
       <div> Add tags <input type="text" name="tag">&nbsp; 
-      <input type="file" name="image" accept="image/*" multiple>
+      <a href="/image"  target="_blank">UploadImages</a> &nbsp;
       </div>
       <br />
       <div>
