@@ -60,6 +60,7 @@ def urlquote(s):
     return urllib.quote(s)
 
 def sendEmail(author, answer):
+    """  send email method """
     if mail.is_email_valid(author.email()):
         message = mail.EmailMessage(sender="Admin <wl1002@nyu.edu>",
                             subject="Your question receives a new answer")
@@ -637,6 +638,7 @@ class RedirectHandler(webapp2.RequestHandler):
             self.redirect('/')
 
 class DeleteHandler(webapp2.RequestHandler):
+    """ delete image question or answers """
     def post(self):
         if not users.is_current_user_admin():
             signUrl = users.create_logout_url('/')
