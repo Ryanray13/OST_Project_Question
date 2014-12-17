@@ -152,6 +152,7 @@ class GetTagsPage(webapp2.RequestHandler):
                     query_params = {'tag': tag}
                     tagsUrl[tag] = ('/list?' + urllib.urlencode(query_params))
         template_values = {
+            'title':'Tags',
             'tagsUrl':tagsUrl,
             'current_user': current_user,
             'signUrl': signUrl,
@@ -181,11 +182,13 @@ class AddQuestionPage(webapp2.RequestHandler):
                 self.redirect('/')
                 return
             question = questionKey.get()
+            title = 'Edit Quetsion'
         else:
             question=None
+            title = 'Create Question'
             
         template_values = {
-            'title': 'Add Question',
+            'title': title,
             'current_user': current_user,
             'signUrl': signUrl,
             'question':question
@@ -286,7 +289,8 @@ class ViewQuestion(webapp2.RequestHandler):
             edit = False
             query_params = {'qid': qid}
             answerUrl = '/answer?' + urllib.urlencode(query_params)
-        elif self.request.get('aid') :
+            title='View Question'
+        elif self.request.get('aid'):
             # if there is aid, then is editing that answer, show that answer only
             aid = self.request.get('aid')
             try:
@@ -300,12 +304,13 @@ class ViewQuestion(webapp2.RequestHandler):
             edit = True
             query_params = {'aid': aid}
             answerUrl = '/edita?' + urllib.urlencode(query_params)
+            title='Edit Answer'
         else:
             self.redirect('/')
             return
         
         template_values = {
-            'title': 'View Question',
+            'title': title,
             'current_user': current_user,
             'signUrl': signUrl,
             'question': question,
@@ -495,6 +500,48 @@ class AddVote(webapp2.RequestHandler):
             self.redirect('/')
             return             
 
+class RssPage(webapp2.RequestHandler):
+    """ render rss page """
+    def get(self):
+        if self.request.get('qid'):
+            qid = self.request.get('qid')
+            try:
+                questionKey = ndb.Key(urlsafe = qid)
+            except:
+                self.redirect('/')
+                return
+            question = questionKey.get()
+            title = 'Question Rss'
+            chanelLink='http://' + os.environ['HTTP_HOST'] +'/view?qid=' +questionKey.urlsafe()
+            chanelDes = 'Feed for single question with its answers'
+            questionLink = {}
+            questionLink[questionKey.id()]=chanelLink
+            answers=Answer.query(ancestor=questionKey).order(-Answer.voteResult).fetch()
+            questions=None
+        else:
+            title = 'Mainpage Rss'
+            questions = Question.query(ancestor=site_key()).order(-Question.modifyTime).fetch()
+            chanelLink=self.request.uri
+            chanelDes = 'Feed for all questions'
+            answers = None
+            questionLink={}
+            for question in questions:
+                questionLink[question.key.id()] = 'http://' + os.environ['HTTP_HOST'] + '/view?qid=' +question.key.urlsafe()
+            question = None
+            
+        template_values = {
+            'title': title,
+            'chanelLink': chanelLink,
+            'chanelDes' : chanelDes,
+            'questions':questions,
+            'question' : question,
+            'answers' : answers,
+            'questionLink': questionLink
+        }
+
+        self.response.headers['Content-Type'] = 'application/rss+xml;charset=utf-8'
+        template = JINJA_ENVIRONMENT.get_template('questionRss.xml')
+        self.response.write(template.render(template_values))
 
 application = webapp2.WSGIApplication([
     ('/', MainPage),
@@ -506,5 +553,6 @@ application = webapp2.WSGIApplication([
     ('/vote', AddVote),
     ('/editq', EditQuestion),
     ('/edita', EditAnswer),
-    ('/tags', GetTagsPage)
+    ('/tags', GetTagsPage),
+    ('/rss', RssPage)
 ], debug=True)

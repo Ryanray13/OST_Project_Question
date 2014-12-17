@@ -20,10 +20,15 @@
    <br />
     <div style="margin-left:300px;margin-right:300px;">
     {% if question.handle %}
-        <h4> {{ question.handle |safe }} </h4>
+       <h4> {{ question.handle |safe }}{% if not edit %}
+       <a href="{{('/rss?qid=' + question.key.urlsafe()) | safe}}">
+       <img src="stylesheets/img/rss.gif" width="36" height="16"></a>{% endif %} </h4>
       {% else %}
-        <h4> Question {{ question.key.id() }} </h4> 
+       <h4> Question {{ question.key.id() }}{% if not edit %}
+       <a href="{{('/rss?qid=' + question.key.urlsafe()) | safe}}">
+       <img src="stylesheets/img/rss.gif" width="36" height="16"></a>{% endif %} </h4>
     {% endif %}
+
     <form action="{{ ('/vote?qid=' + question.key.urlsafe()) |safe }}" method="post" accept-charset="utf-8">
     <blockquote><font size="4"><pre>{{ question.content| replink |safe }}</pre></font></blockquote>
     <p style="text-align:right"><font size="2"> {{ question.voteResult }} &nbsp;</font> 
@@ -33,7 +38,9 @@
     </form>
     <div >
     <p style="float:left">
+    {% if question.tags %}
     Tags:
+    {% endif %}
         {% for tag in question.tags %}<em><a href="{{ ('/list?tag=' + (tag | urlquote)) | safe}}" >{{ tag |safe }}</a></em>  &nbsp;
         {% endfor %}
     </p> 

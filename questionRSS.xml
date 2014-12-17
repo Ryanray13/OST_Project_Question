@@ -1,20 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
+{% autoescape true %}
 <channel>
- <title>RSS Title</title>
- <description>This is an example of an RSS feed</description>
- <link>http://www.example.com/main.html</link>
- <lastBuildDate>Mon, 06 Sep 2010 00:01:00 +0000 </lastBuildDate>
- <pubDate>Sun, 06 Sep 2009 16:20:00 +0000</pubDate>
- <ttl>1800</ttl>
- 
- <item>
-  <title>Example entry</title>
-  <description>Here is some text containing an interesting description.</description>
-  <link>http://www.example.com/blog/post/1</link>
-  <guid>7bd204c6-1655-4c27-aeee-53f933c5395f</guid>
-  <pubDate>Sun, 06 Sep 2009 16:20:00 +0000</pubDate>
- </item>
- 
+  <title>{{ title }}</title>
+  <description>{{ chanelDes }}</description>
+  <link>{{ chanelLink }}</link>
+  {% if not question %}{% for question in questions %}
+  <item>
+    <title>{% if question.handle %}{{ question.handle }}{% else %}Question{{  question.key.id() }}{% endif %}</title>
+    <description>{{ question.content }}</description>
+    <link>{{ questionLink[question.key.id()] }}</link>
+    <author>{{ question.author }}</author>
+  </item>
+  {% endfor %}{% else %}
+  <item>
+    <title>{% if question.handle %}{{ question.handle }}{% else %}Question{{  question.key.id() }}{% endif %}</title>
+    <description>{{ question.content }}</description>
+    <link>{{ questionLink[question.key.id()] }}</link>
+    <author>{{ question.author }}</author>
+  </item>
+   {% endif %}{% if answers %}{% for answer in answers %}
+  <item>
+    <title>Answer {{ answer.key.id() }}</title>
+    <description>{{ answer.content }}</description>
+    <link>{{ questionLink[question.key.id()] }}</link>
+    <author>{{ answer.author }}</author>
+   </item>
+   {% endfor %}{% endif %}
 </channel>
 </rss>
+{% endautoescape %}
