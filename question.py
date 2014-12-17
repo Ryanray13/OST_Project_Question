@@ -236,7 +236,8 @@ class AddQuestion(blobstore_handlers.BlobstoreUploadHandler):
             for image in upload_images:
                 blob_info = image
                 question.content += ' http://' + os.environ['HTTP_HOST'] + ('/img/%s' % blob_info.key()) + ' '
-                
+        question.content = re.sub('(\n)+','',question.content)    
+        question.handle = re.sub('(\r\n)+','',question.handle)   
         question.modifyTime = datetime.datetime.now()
         qkey = question.put()
         query_params = {'qid': qkey.urlsafe()}
@@ -282,6 +283,8 @@ class EditQuestion(blobstore_handlers.BlobstoreUploadHandler):
             for image in upload_images:
                 blob_info = image
                 question.content += ' http://' + os.environ['HTTP_HOST'] + ('/img/%s' % blob_info.key()) + ' '
+        question.handle = re.sub('(\r\n)+','',question.handle) 
+        question.content = re.sub('(\r\n)+','',question.content) 
         question.modifyTime = datetime.datetime.now()
         qkey = question.put()
         query_params = {'qid': qkey.urlsafe()}
@@ -379,6 +382,7 @@ class AnswerQuestion(blobstore_handlers.BlobstoreUploadHandler):
             for image in upload_images:
                 blob_info = image
                 answer.content += ' http://' + os.environ['HTTP_HOST'] + ('/img/%s' % blob_info.key()) + ' '
+        answer.content = re.sub('(\r\n)+','',answer.content) 
         answer.voteResult = 0
         answer.modifyTime = datetime.datetime.now()
         answer.put()
@@ -423,7 +427,7 @@ class EditAnswer(blobstore_handlers.BlobstoreUploadHandler):
             for image in upload_images:
                 blob_info = image
                 answer.content += ' http://' + os.environ['HTTP_HOST'] + ('/img/%s' % blob_info.key()) + ' '
-        
+        answer.content = re.sub('(\r\n)+','',answer.content)
         answer.modifyTime = datetime.datetime.now()
         answer.put()
         self.redirect(questionUrl) 
