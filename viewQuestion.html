@@ -25,7 +25,7 @@
         <h4> Question {{ question.key.id() }} </h4> 
     {% endif %}
     <form action="{{ ('/vote?qid=' + question.key.urlsafe()) |safe }}" method="post" accept-charset="utf-8">
-    <blockquote><font size="4"><pre>{{ question.content |safe }}</pre></font></blockquote>
+    <blockquote><font size="4"><pre>{{ question.content| replink |safe }}</pre></font></blockquote>
     <p style="text-align:right"><font size="2"> {{ question.voteResult }} &nbsp;</font> 
       <input type="submit" value="Up"  name="value" >
       <input type="submit" value="Down" name="value" >
@@ -34,7 +34,7 @@
     <div >
     <p style="float:left">
     Tags:
-        {% for tag in question.tags %}<em><a href="{{ tagsUrl[tag] | safe}}" >{{ tag |safe }}</a></em>  &nbsp;
+        {% for tag in question.tags %}<em><a href="{{ ('/list?tag=' + (tag | urlquote)) | safe}}" >{{ tag |safe }}</a></em>  &nbsp;
         {% endfor %}
     </p> 
     <p style="float:right">
@@ -55,7 +55,7 @@
     {% if not edit %}
     {% for answer in answers %}
      <form action="{{ ('/vote?qid=' + question.key.urlsafe() + '&aid=' + answer.key.urlsafe()) |safe }}" method="post" accept-charset="utf-8">
-      <blockquote><font size="4"><pre>{{ answer.content|safe }}</pre></font></blockquote>
+      <blockquote><font size="4"><pre>{{ answer.content|replink |safe }}</pre></font></blockquote>
       <p style="text-align:right"><font size="2"> {{ answer.voteResult }} &nbsp; </font> 
         <input type="submit" value="Up"  name="value" >
         <input type="submit" value="Down" name="value" >
@@ -80,7 +80,7 @@
     <form action="{{ answerUrl|safe }}" method="post" accept-charset="utf-8" enctype="multipart/form-data">
       <h4> What is your Answer? </h4>
       {% if edit %}
-      <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." >{{ answers.content }}</textarea></div>
+      <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." >{{ answers.content | safe }}</textarea></div>
       {% else %}
       <div><textarea name="acontent" rows="10" cols="80" placeholder="Type your Answer here..." ></textarea></div>
       {% endif %}

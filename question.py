@@ -2,6 +2,7 @@
 import os
 import urllib
 import datetime
+import re
 
 from google.appengine.api import users
 from google.appengine.ext import ndb
@@ -23,6 +24,31 @@ DEFAULT_USER_NAME = 'anonymous'
 # We set a parent key on the 'Questions' to ensure that they are all in the same
 # entity group. Queries across the single entity group will be consistent.
 # However, the write rate should be limited to ~1/second.
+
+#Custom jinja2 regex replacement filter
+def replacelink(s):
+    """a regex filter"""
+    def replink(m):
+        if m.group().endswith('.jpg') or m.group().endswith('.png') or m.group().endswith('.gif'):
+            return  '<img src="'  + m.group() + '"' 
+        else:
+            return '<a href="' + m.group(1) + '">' + m.group(2) + '</a>'
+    return re.sub(r'(https?://([^ ,;]*))', replink, s)
+
+#replace link for mainpage, mainly just resize the image
+def replacelinkSmall(s):
+    """a regex filter"""
+    def replink(m):
+        if m.group().endswith('.jpg') or m.group().endswith('.png') or m.group().endswith('.gif'):
+            return  '<img src="'  + m.group() + '" height="42" width="42">' 
+        else:
+            return '<a href="' + m.group(1) + '">' + m.group(2) + '</a>'
+    return re.sub(r'(https?://([^ ,;]*))', replink, s)
+
+#Custom jinja2 quote filter
+def urlquote(s):
+    """a regex filter"""
+    return urllib.quote(s)
 
 def site_key():
     """Constructs a website key for All questions."""
@@ -102,6 +128,7 @@ class MainPage(webapp2.RequestHandler):
             'nextPageUrl' : nextPageUrl
         }
 
+        JINJA_ENVIRONMENT.filters['replink'] = replacelinkSmall
         template = JINJA_ENVIRONMENT.get_template('mainPage.html')
         self.response.write(template.render(template_values))
 # [END main_page]
@@ -271,11 +298,6 @@ class ViewQuestion(webapp2.RequestHandler):
             self.redirect('/')
             return
         
-        tagsUrl={}
-        for tag in question.tags:
-            query_params = {'tag': tag}
-            tagsUrl[tag] = ('/list?' + urllib.urlencode(query_params))
-        
         template_values = {
             'title': 'View Question',
             'current_user': current_user,
@@ -284,9 +306,9 @@ class ViewQuestion(webapp2.RequestHandler):
             'answers': answers,
             'answerUrl': answerUrl,
             'edit':edit,
-            'tagsUrl' : tagsUrl
         }
-
+        JINJA_ENVIRONMENT.filters['replink'] = replacelink
+        JINJA_ENVIRONMENT.filters['urlquote'] = urlquote
         template = JINJA_ENVIRONMENT.get_template('viewQuestion.html')
         self.response.write(template.render(template_values))
        
