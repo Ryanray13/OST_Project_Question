@@ -76,6 +76,8 @@ def sendEmail(author, answer):
         
         %s
         
+        Sincerely,
+        Ray Question Team
         """ % (author.nickname(), answer.content, answer.author.nickname())
         message.send()
 
