@@ -5,6 +5,12 @@ indexes:
   - name: tags
   - name: modifyTime
     direction: desc
+  
+- kind: Question
+  ancestor: yes
+  properties:
+  - name: modifyTime
+    direction: desc  
     
 - kind: Answer
   ancestor: yes
