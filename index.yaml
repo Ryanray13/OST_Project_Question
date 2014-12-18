@@ -2,6 +2,7 @@ indexes:
 - kind: Question
   ancestor: yes
   properties:
+  - name: tags
   - name: modifyTime
     direction: desc
     
